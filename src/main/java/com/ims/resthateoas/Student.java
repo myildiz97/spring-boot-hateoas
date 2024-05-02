@@ -1,17 +1,17 @@
 package com.ims.resthateoas;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.springframework.hateoas.RepresentationModel;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class Student extends RepresentationModel<Student> {
+  private static final AtomicLong counter = new AtomicLong();
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
   private Long studentId;
   private String firstName;
   private String lastName;
@@ -20,6 +20,7 @@ public class Student extends RepresentationModel<Student> {
   }
 
   public Student(String firstName, String lastName) {
+    this.studentId = counter.incrementAndGet();
     this.firstName = firstName;
     this.lastName = lastName;
   }

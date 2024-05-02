@@ -16,7 +16,6 @@ public class StudentRepository {
   @PostConstruct
   public void init() {
     Student student1 = new Student("John", "Doe");
-    System.out.println("StudentRepository.init(): student1: " + student1);
     Student student2 = new Student("Jane", "Doe");
     Student student3 = new Student("Alice", "Smith");
     Student student4 = new Student("Bob", "Smith");
@@ -28,7 +27,7 @@ public class StudentRepository {
   }
 
   public List<Student> findAll() {
-    return List.copyOf(students.values());
+    return students.values().stream().toList();
   }
 
   public Student findById(Long id) {

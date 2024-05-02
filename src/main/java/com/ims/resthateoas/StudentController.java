@@ -22,7 +22,6 @@ public class StudentController {
   @GetMapping("/students")
   public ResponseEntity<List<Student>> getStudents() {
     List<Student> students = studentRepository.findAll();
-    System.out.println(students);
     for (Student student : students) {
       student.add(linkTo(methodOn(StudentController.class).getStudent(student.getStudentId())).withSelfRel());
     }
