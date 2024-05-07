@@ -123,4 +123,69 @@ public class UserController {
     return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
   }
 
+  @PostMapping("/users/login")
+  public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    User existingUser;
+    try {
+      userRepository.login(loginRequest.getUsername(), loginRequest.getPassword());
+      existingUser = userRepository.findByUsername(loginRequest.getUsername());
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+    }
+    return new ResponseEntity<>(existingUser, HttpStatus.OK);
+  }
+
+  @PostMapping("/users/logout")
+  public ResponseEntity<?> logout(@RequestBody LogoutRequest logoutRequest) {
+    try {
+      userRepository.logout(logoutRequest.getUsername());
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+    }
+    Map<String, String> success = new HashMap<>();
+    success.put("success", "User logged out successfully");
+    return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
+  }
+
+  @GetMapping("/users/{id}/login")
+  public ResponseEntity<?> isUserLoggedIn(@PathVariable Long id) {
+    User user;
+    try {
+      user = userRepository.findById(id);
+      if (user == null) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      if (userRepository.isUserLoggedIn(user.getUsername())) {
+        Map<String, String> message = new HashMap<>();
+        message.put("message", "User is logged in");
+        return new ResponseEntity<Map<String, String>>(message, HttpStatus.OK);
+      }
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+    }
+    Map<String, String> message = new HashMap<>();
+    message.put("message", "User is not logged in");
+    return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
+  }
+
+  @PostMapping("/users/signup")
+  public ResponseEntity<?> signup(@RequestBody User user) {
+    User newUser = new User(user);
+    try {
+      userRepository.save(newUser);
+      addUserLinks(newUser);
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.CONFLICT);
+    }
+    return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
+  }
+
 }

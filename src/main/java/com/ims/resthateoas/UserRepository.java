@@ -12,6 +12,7 @@ import jakarta.annotation.PostConstruct;
 public class UserRepository {
   // Mapping of id to User
   private Map<Long, User> users = new HashMap<>();
+  private Map<Long, Boolean> usersLoggedIn = new HashMap<>();
 
   @PostConstruct
   public void initData() {
@@ -29,9 +30,8 @@ public class UserRepository {
     customer.setPhone("0553 130 95 98");
     customer.setUsername("mehmetyildiz");
 
-    System.out.println(customer.getId());
-
     users.put(customer.getId(), customer);
+    usersLoggedIn.put(customer.getId(), false);
 
     User supplier = new User();
     supplier.setName("Deniz");
@@ -46,8 +46,8 @@ public class UserRepository {
     supplier.setPhone("0538 272 32 54");
     supplier.setUsername("sdenizu");
 
-    System.out.println(supplier.getId());
     users.put(supplier.getId(), supplier);
+    usersLoggedIn.put(supplier.getId(), true);
 
     User importManager = new User();
     importManager.setName("Umut");
@@ -62,8 +62,8 @@ public class UserRepository {
     importManager.setPhone("0534 348 34 82");
     importManager.setUsername("uoztop");
 
-    System.out.println(importManager.getId());
     users.put(importManager.getId(), importManager);
+    usersLoggedIn.put(importManager.getId(), true);
   }
 
   public List<User> findAll() {
@@ -76,6 +76,15 @@ public class UserRepository {
       throw new UserNotFoundException();
     }
     return users.get(id);
+  }
+
+  public User findByUsername(String username) {
+    for (Map.Entry<Long, User> entry : users.entrySet()) {
+      if (entry.getValue().getUsername().equals(username)) {
+        return entry.getValue();
+      }
+    }
+    throw new UserNotFoundException();
   }
 
   public void deleteById(Long id) {
@@ -106,9 +115,50 @@ public class UserRepository {
         throw new UserAlreadyExistsException();
       } else {
         users.put(user.getId(), user);
+        usersLoggedIn.put(user.getId(), false);
         return true;
       }
     }
-
   }
+
+  public boolean login(String username, String password) {
+    User existingUser = findByUsername(username);
+
+    if (existingUser == null) {
+      throw new UserNotFoundException();
+    } else if (!existingUser.getPassword().equals(password)) {
+      throw new InvalidPasswordException();
+    } else if (!existingUser.getUsername().equals(username)) {
+      throw new InvalidUsernameException(username);
+    } else {
+      usersLoggedIn.put(existingUser.getId(), true);
+      return true;
+    }
+  }
+
+  public boolean logout(String username) {
+    User existingUser = findByUsername(username);
+
+    if (existingUser == null) {
+      throw new UserNotFoundException();
+    } else if (!existingUser.getUsername().equals(username)) {
+      throw new InvalidUsernameException(username);
+    } else if (usersLoggedIn.get(existingUser.getId()) == false) {
+      throw new UserNotLoggedInException();
+    } else {
+      usersLoggedIn.put(existingUser.getId(), false);
+      return true;
+    }
+  }
+
+  public boolean isUserLoggedIn(String username) {
+    User existingUser = findByUsername(username);
+
+    if (existingUser == null) {
+      throw new UserNotFoundException();
+    } else {
+      return usersLoggedIn.get(existingUser.getId());
+    }
+  }
+
 }
