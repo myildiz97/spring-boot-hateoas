@@ -4,7 +4,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -32,7 +34,7 @@ public class UserController {
   }
 
   @GetMapping("/users")
-  public ResponseEntity<List<User>> getUsers() {
+  public ResponseEntity<?> getUsers() {
     List<User> users = new ArrayList<>();
     try {
       users = userRepository.findAll();
@@ -40,53 +42,46 @@ public class UserController {
         addUserLinks(user);
       }
     } catch (Exception e) {
-      // Log the exception and return a 500 Internal Server Error response
-      e.printStackTrace();
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return new ResponseEntity<>(users, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}")
-  public HttpEntity<User> getUser(@PathVariable Long id) {
+  public HttpEntity<?> getUser(@PathVariable Long id) {
     User user;
     try {
       user = userRepository.findById(id);
       user = addUserLinks(user);
     } catch (Exception e) {
-      // Log the exception and return a 404 Not Found response
-      e.printStackTrace();
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return new HttpEntity<>(user);
   }
 
   @PostMapping("/users")
-  public ResponseEntity<User> createUser(@RequestBody User user) {
+  public ResponseEntity<?> createUser(@RequestBody User user) {
     User newUser = new User(user);
     try {
-      boolean userSaved = userRepository.save(newUser);
-      if (!userSaved) {
-        // User with the same username already exists
-        return new ResponseEntity<>(HttpStatus.CONFLICT);
-      }
+      userRepository.save(newUser);
       addUserLinks(newUser);
     } catch (Exception e) {
-      // Log the exception and return a 500 Internal Server Error response
-      e.printStackTrace();
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.CONFLICT);
     }
-    return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
   }
 
   @PutMapping("/users/{id}")
-  public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+  public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
     User existingUser;
     try {
       existingUser = userRepository.findById(id);
-      if (existingUser == null) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
       existingUser.setName(user.getName());
       existingUser.setBirthDate(user.getBirthDate());
       existingUser.setGender(user.getGender());
@@ -102,15 +97,15 @@ public class UserController {
       userRepository.save(existingUser);
       addUserLinks(existingUser);
     } catch (Exception e) {
-      // Log the exception and return a 500 Internal Server Error response
-      e.printStackTrace();
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return new ResponseEntity<>(existingUser, HttpStatus.OK);
   }
 
   @DeleteMapping("/users/{id}")
-  public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+  public ResponseEntity<?> deleteUser(@PathVariable Long id) {
     User user;
     try {
       user = userRepository.findById(id);
@@ -119,11 +114,13 @@ public class UserController {
       }
       userRepository.deleteById(id);
     } catch (Exception e) {
-      // Log the exception and return a 500 Internal Server Error response
-      e.printStackTrace();
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    Map<String, String> success = new HashMap<>();
+    success.put("success", "User deleted successfully");
+    return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
   }
 
 }

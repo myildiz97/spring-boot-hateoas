@@ -73,8 +73,7 @@ public class UserRepository {
   public User findById(Long id) {
     User user = users.get(id);
     if (user == null) {
-      System.out.println("User not found");
-      return null;
+      throw new UserNotFoundException();
     }
     return users.get(id);
   }
@@ -83,24 +82,33 @@ public class UserRepository {
     User user = users.get(id);
 
     if (user == null) {
-      System.out.println("User not found");
-      return;
+      throw new UserNotFoundException();
     }
     users.remove(id);
   }
 
   public boolean save(User user) {
-    Boolean isUserExist = false;
-    for (Map.Entry<Long, User> entry : users.entrySet()) {
-      if (entry.getValue().getUsername().equals(user.getUsername())) {
-        isUserExist = true;
-        break;
+    if (user.getUsername().length() < 3) {
+      throw new UsernameTooShortException();
+    } else if (!users.containsValue(user)) {
+      throw new UserNotFoundException();
+    } else if (user.getPassword().length() < 6) {
+      throw new PasswordTooShortException();
+    } else {
+      Boolean isUserExist = false;
+      for (Map.Entry<Long, User> entry : users.entrySet()) {
+        if (entry.getValue().getUsername().equals(user.getUsername()) || entry.getKey().equals(user.getId())) {
+          isUserExist = true;
+          break;
+        }
+      }
+      if (isUserExist) {
+        throw new UserAlreadyExistsException();
+      } else {
+        users.put(user.getId(), user);
+        return true;
       }
     }
-    if (!isUserExist) {
-      users.put(user.getId(), user);
-      return true;
-    }
-    return false;
+
   }
 }
