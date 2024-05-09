@@ -38,7 +38,8 @@ public class UserController {
 
     Boolean loggedIn = userRepository.isUserLoggedIn(user.getUsername());
     if (!loggedIn) {
-      user.add(linkTo(methodOn(UserController.class).userLogin(userId)).withRel("login"));
+      LoginRequest loginRequest = new LoginRequest();
+      user.add(linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login"));
     } else {
       user.add(linkTo(methodOn(UserController.class).userLogout(userId)).withRel("logout"));
     }
@@ -186,54 +187,13 @@ public class UserController {
     try {
       userRepository.login(loginRequest.getUsername(), loginRequest.getPassword());
       existingUser = userRepository.findByUsername(loginRequest.getUsername());
+      addUserLinks(existingUser);
     } catch (Exception e) {
       Map<String, String> error = new HashMap<>();
       error.put("error", e.getMessage());
       return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
     }
     return new ResponseEntity<>(existingUser, HttpStatus.OK);
-  }
-
-  @GetMapping("/users/{id}/login")
-  public ResponseEntity<?> userLogin(@PathVariable Long id) {
-    User user;
-    try {
-      user = userRepository.findById(id);
-      if (user == null) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
-      if (userRepository.isUserLoggedIn(user.getUsername())) {
-        Map<String, String> message = new HashMap<>();
-        message.put("message", "User is already logged in");
-        Link logoutLink = linkTo(methodOn(UserController.class).userLogout(user.getId())).withRel("logout");
-        message.put("logout", logoutLink.getHref()); // Use getHref() to get the URI as a string
-        return new ResponseEntity<Map<String, String>>(message, HttpStatus.OK);
-      }
-      String username = user.getUsername();
-      String password = user.getPassword();
-      userRepository.login(username, password);
-    } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
-    }
-    Map<String, String> message = new HashMap<>();
-    message.put("message", "User is logged in");
-    return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
-  }
-
-  @PostMapping("/users/logout")
-  public ResponseEntity<?> logout(@RequestBody LogoutRequest logoutRequest) {
-    try {
-      userRepository.logout(logoutRequest.getUsername());
-    } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
-    }
-    Map<String, String> success = new HashMap<>();
-    success.put("success", "User logged out successfully");
-    return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}/logout")
@@ -248,6 +208,9 @@ public class UserController {
         userRepository.logout(user.getUsername());
         Map<String, String> success = new HashMap<>();
         success.put("success", "User logged out successfully");
+        LoginRequest loginRequest = new LoginRequest();
+        Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
+        success.put("login", loginLink.getHref()); // Use getHref() to get the URI as a string
         return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
       }
     } catch (Exception e) {
@@ -257,7 +220,8 @@ public class UserController {
     }
     Map<String, String> message = new HashMap<>();
     message.put("message", "User is not logged in");
-    Link loginLink = linkTo(methodOn(UserController.class).userLogin(user.getId())).withRel("login");
+    LoginRequest loginRequest = new LoginRequest();
+    Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
     message.put("login", loginLink.getHref()); // Use getHref() to get the URI as a string
     return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
   }
