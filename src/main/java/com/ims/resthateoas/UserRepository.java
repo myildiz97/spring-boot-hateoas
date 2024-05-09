@@ -99,8 +99,6 @@ public class UserRepository {
   public boolean save(User user) {
     if (user.getUsername().length() < 3) {
       throw new UsernameTooShortException();
-    } else if (!users.containsValue(user)) {
-      throw new UserNotFoundException();
     } else if (user.getPassword().length() < 6) {
       throw new PasswordTooShortException();
     } else {
@@ -116,6 +114,7 @@ public class UserRepository {
       } else {
         users.put(user.getId(), user);
         usersLoggedIn.put(user.getId(), false);
+        user.setLoggedIn(false);
         return true;
       }
     }
@@ -132,6 +131,7 @@ public class UserRepository {
       throw new InvalidUsernameException(username);
     } else {
       usersLoggedIn.put(existingUser.getId(), true);
+      existingUser.setLoggedIn(true);
       return true;
     }
   }
@@ -147,6 +147,7 @@ public class UserRepository {
       throw new UserNotLoggedInException();
     } else {
       usersLoggedIn.put(existingUser.getId(), false);
+      existingUser.setLoggedIn(false);
       return true;
     }
   }
@@ -157,7 +158,7 @@ public class UserRepository {
     if (existingUser == null) {
       throw new UserNotFoundException();
     } else {
-      return usersLoggedIn.get(existingUser.getId());
+      return existingUser.isLoggedIn();
     }
   }
 

@@ -34,13 +34,15 @@ public class User extends RepresentationModel<User> {
   private String bankName;
   private long accountNumber;
   private String companyName;
+  private boolean loggedIn;
 
   public User() {
     this.id = counter.incrementAndGet();
+    this.loggedIn = false;
   }
 
   public User(String name, String birthDate, Gender gender, UserRoles role, String username, String email,
-      String password, String phone, String bankName, long accountNumber, String companyName) {
+      String password, String phone, String bankName, long accountNumber, String companyName, boolean loggedIn) {
     this.id = counter.incrementAndGet();
     this.name = name;
     this.birthDate = birthDate;
@@ -53,6 +55,7 @@ public class User extends RepresentationModel<User> {
     this.bankName = bankName;
     this.accountNumber = accountNumber;
     this.companyName = companyName;
+    this.loggedIn = loggedIn;
   }
 
   public User(User user) {
@@ -68,6 +71,7 @@ public class User extends RepresentationModel<User> {
     this.bankName = user.getBankName();
     this.accountNumber = user.getAccountNumber();
     this.companyName = user.getCompanyName();
+    this.loggedIn = user.isLoggedIn();
   }
 
   public Long getId() {
@@ -164,6 +168,14 @@ public class User extends RepresentationModel<User> {
 
   public void setCompanyName(String companyName) {
     this.companyName = companyName;
+  }
+
+  public boolean isLoggedIn() {
+    return this.loggedIn;
+  }
+
+  public void setLoggedIn(boolean loggedIn) {
+    this.loggedIn = loggedIn;
   }
 
 }

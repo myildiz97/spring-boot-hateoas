@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +28,19 @@ public class UserController {
   private UserRepository userRepository;
 
   public User addUserLinks(User user) {
-    if (user.getLinks().isEmpty()) {
-      user.add(linkTo(methodOn(UserController.class).getUser(user.getId())).withSelfRel());
+    Long userId = user.getId();
+    user.removeLinks();
+
+    user.add(linkTo(methodOn(UserController.class).getUser(userId)).withSelfRel());
+    user.add(linkTo(methodOn(UserController.class).getBankName(userId)).withRel("bankName"));
+    user.add(linkTo(methodOn(UserController.class).getAccountNumber(userId)).withRel("accountNumber"));
+    user.add(linkTo(methodOn(UserController.class).getCompanyName(userId)).withRel("companyName"));
+
+    Boolean loggedIn = userRepository.isUserLoggedIn(user.getUsername());
+    if (!loggedIn) {
+      user.add(linkTo(methodOn(UserController.class).userLogin(userId)).withRel("login"));
+    } else {
+      user.add(linkTo(methodOn(UserController.class).userLogout(userId)).withRel("logout"));
     }
     return user;
   }
@@ -54,13 +66,58 @@ public class UserController {
     User user;
     try {
       user = userRepository.findById(id);
-      user = addUserLinks(user);
+      addUserLinks(user);
     } catch (Exception e) {
       Map<String, String> error = new HashMap<>();
       error.put("error", e.getMessage());
       return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return new HttpEntity<>(user);
+  }
+
+  @GetMapping("/users/{id}/bankname")
+  public HttpEntity<?> getBankName(@PathVariable Long id) {
+    String bankName;
+    User user;
+    try {
+      user = userRepository.findById(id);
+      bankName = user.getBankName();
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return new HttpEntity<>(bankName);
+  }
+
+  @GetMapping("/users/{id}/accountnumber")
+  public HttpEntity<?> getAccountNumber(@PathVariable Long id) {
+    long accountNumber;
+    User user;
+    try {
+      user = userRepository.findById(id);
+      accountNumber = user.getAccountNumber();
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return new HttpEntity<>(accountNumber);
+  }
+
+  @GetMapping("/users/{id}/companyname")
+  public HttpEntity<?> getCompanyName(@PathVariable Long id) {
+    String companyName;
+    User user;
+    try {
+      user = userRepository.findById(id);
+      companyName = user.getCompanyName();
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return new HttpEntity<>(companyName);
   }
 
   @PostMapping("/users")
@@ -137,6 +194,34 @@ public class UserController {
     return new ResponseEntity<>(existingUser, HttpStatus.OK);
   }
 
+  @GetMapping("/users/{id}/login")
+  public ResponseEntity<?> userLogin(@PathVariable Long id) {
+    User user;
+    try {
+      user = userRepository.findById(id);
+      if (user == null) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      if (userRepository.isUserLoggedIn(user.getUsername())) {
+        Map<String, String> message = new HashMap<>();
+        message.put("message", "User is already logged in");
+        Link logoutLink = linkTo(methodOn(UserController.class).userLogout(user.getId())).withRel("logout");
+        message.put("logout", logoutLink.getHref()); // Use getHref() to get the URI as a string
+        return new ResponseEntity<Map<String, String>>(message, HttpStatus.OK);
+      }
+      String username = user.getUsername();
+      String password = user.getPassword();
+      userRepository.login(username, password);
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+    }
+    Map<String, String> message = new HashMap<>();
+    message.put("message", "User is logged in");
+    return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
+  }
+
   @PostMapping("/users/logout")
   public ResponseEntity<?> logout(@RequestBody LogoutRequest logoutRequest) {
     try {
@@ -151,7 +236,33 @@ public class UserController {
     return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
   }
 
-  @GetMapping("/users/{id}/login")
+  @GetMapping("/users/{id}/logout")
+  public ResponseEntity<?> userLogout(@PathVariable Long id) {
+    User user;
+    try {
+      user = userRepository.findById(id);
+      if (user == null) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+      if (userRepository.isUserLoggedIn(user.getUsername())) {
+        userRepository.logout(user.getUsername());
+        Map<String, String> success = new HashMap<>();
+        success.put("success", "User logged out successfully");
+        return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
+      }
+    } catch (Exception e) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", e.getMessage());
+      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+    }
+    Map<String, String> message = new HashMap<>();
+    message.put("message", "User is not logged in");
+    Link loginLink = linkTo(methodOn(UserController.class).userLogin(user.getId())).withRel("login");
+    message.put("login", loginLink.getHref()); // Use getHref() to get the URI as a string
+    return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
+  }
+
+  @GetMapping("/users/{id}/loggedin")
   public ResponseEntity<?> isUserLoggedIn(@PathVariable Long id) {
     User user;
     try {

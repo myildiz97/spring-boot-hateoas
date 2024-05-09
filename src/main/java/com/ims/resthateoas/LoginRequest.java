@@ -1,5 +1,8 @@
 package com.ims.resthateoas;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class LoginRequest {
   private String username;
   private String password;
