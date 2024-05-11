@@ -114,6 +114,30 @@ public class UserRepository {
     }
   }
 
+  public User update(User user) {
+    String username = user.getUsername();
+    Boolean isUserExist = false;
+    for (Map.Entry<Long, User> entry : users.entrySet()) {
+      if (entry.getValue().getUsername().equals(username)) {
+        isUserExist = true;
+        break;
+      }
+    }
+
+    if (isUserExist) {
+      throw new UserAlreadyExistsException();
+    }
+
+    if (user.getUsername().length() < 3) {
+      throw new UsernameTooShortException();
+    } else if (user.getPassword().length() < 6) {
+      throw new PasswordTooShortException();
+    } else {
+      users.put(user.getId(), user);
+      return user;
+    }
+  }
+
   public boolean login(String username, String password) {
     User existingUser = findByUsername(username);
 
@@ -122,7 +146,9 @@ public class UserRepository {
     } else if (!existingUser.getPassword().equals(password)) {
       throw new InvalidPasswordException();
     } else if (!existingUser.getUsername().equals(username)) {
-      throw new InvalidUsernameException(username);
+      throw new InvalidUsernameException();
+    } else if (existingUser.isLoggedIn()) {
+      throw new AlreadyLoggedInException();
     } else {
       existingUser.setLoggedIn(true);
       return true;

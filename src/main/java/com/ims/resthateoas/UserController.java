@@ -53,7 +53,7 @@ public class UserController {
   }
 
   @GetMapping("/users")
-  @Tag(name = "Users", description = "Get all users")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Get all users", description = "Get all users")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -75,7 +75,7 @@ public class UserController {
   }
 
   @GetMapping("/users/{id}")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Get a user", description = "Get a user by ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -96,7 +96,7 @@ public class UserController {
   }
 
   @GetMapping("/users/{id}/bankname")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Get bank name", description = "Get bank name by user ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -118,7 +118,7 @@ public class UserController {
   }
 
   @GetMapping("/users/{id}/accountnumber")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Get account number", description = "Get account number by user ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -140,7 +140,7 @@ public class UserController {
   }
 
   @GetMapping("/users/{id}/companyname")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Get company name", description = "Get company name by user ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -157,12 +157,12 @@ public class UserController {
       companyName = user.getCompanyName();
       return new Response("companyName", companyName).createResponse();
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).createResponse();
+      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
     }
   }
 
   @PutMapping("/users/{id}")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Update a user", description = "Update a user by ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -173,22 +173,9 @@ public class UserController {
   public ResponseEntity<?> updateUser(
       @Parameter(name = "id", description = "User id to be updated", required = true) @PathVariable Long id,
       @Parameter(name = "user", description = "User object to be updated", required = true) @RequestBody User user) {
-    User existingUser;
     try {
-      existingUser = userRepository.findById(id);
-      existingUser.setName(user.getName());
-      existingUser.setBirthDate(user.getBirthDate());
-      existingUser.setGender(user.getGender());
-      existingUser.setRole(user.getRole());
-      existingUser.setUsername(user.getUsername());
-      existingUser.setEmail(user.getEmail());
-      existingUser.setPassword(user.getPassword());
-      existingUser.setPhone(user.getPhone());
-      existingUser.setAccountNumber(user.getAccountNumber());
-      existingUser.setBankName(user.getBankName());
-      existingUser.setCompanyName(user.getCompanyName());
-
-      userRepository.save(existingUser);
+      user.setId(id);
+      User existingUser = userRepository.update(user);
       addUserLinks(existingUser);
       return new ResponseEntity<>(existingUser, HttpStatus.OK);
     } catch (Exception e) {
@@ -197,7 +184,7 @@ public class UserController {
   }
 
   @DeleteMapping("/users/{id}")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Delete a user", description = "Delete a user by ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
@@ -216,7 +203,7 @@ public class UserController {
   }
 
   @PostMapping("/users/signup")
-  @Tag(name = "Users", description = "Operations on a User")
+  @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Signup a user", description = "Signup a user")
   @ApiResponses({
       @ApiResponse(responseCode = "201", content = {
@@ -227,10 +214,9 @@ public class UserController {
   public ResponseEntity<?> signup(
       @Parameter(name = "user", description = "User object to be created", required = true) @RequestBody User user) {
     try {
-      User newUser = new User(user);
-      userRepository.save(newUser);
-      addUserLinks(newUser);
-      return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
+      userRepository.save(user);
+      addUserLinks(user);
+      return new ResponseEntity<User>(user, HttpStatus.CREATED);
     } catch (Exception e) {
       return new Response(e.getMessage(), HttpStatus.CONFLICT).createResponse();
     }
@@ -249,30 +235,28 @@ public class UserController {
   })
   public ResponseEntity<?> login(
       @Parameter(name = "login request", description = "User username and password", required = true) @RequestBody LoginRequest loginRequest) {
+    HashMap<String, String> message = new HashMap<>();
+    String username = loginRequest.getUsername();
+    String password = loginRequest.getPassword();
     try {
-      String username = loginRequest.getUsername();
-      String password = loginRequest.getPassword();
       User existingUser = userRepository.findByUsername(username);
 
-      HashMap<String, String> message = new HashMap<>();
       Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
       message.put("logout", logoutLink.getHref());
-
-      if (userRepository.isUserLoggedIn(username)) {
-        message.put("error", "User is already logged in");
-        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
-      } else {
-        userRepository.login(username, password);
-        message.put("success", "User logged in successfully");
-        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
-      }
+      userRepository.login(username, password);
+      message.put("success", "User logged in successfully");
+      return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
     } catch (Exception e) {
       if (e instanceof UserNotFoundException) {
         return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
-      } else if (e instanceof InvalidPasswordException) {
+      } else if (e instanceof InvalidPasswordException || e instanceof InvalidUsernameException) {
         return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
-      } else if (e instanceof InvalidUsernameException) {
-        return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+      } else if (e instanceof AlreadyLoggedInException) {
+        User existingUser = userRepository.findByUsername(username);
+        Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
+        message.put("logout", logoutLink.getHref());
+        message.put("error", e.getMessage());
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
       }
       return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
     }
@@ -321,14 +305,16 @@ public class UserController {
   })
   public ResponseEntity<?> isUserLoggedIn(
       @Parameter(name = "id", description = "User id to be checked as logged in", required = true) @PathVariable Long id) {
-    User user;
     try {
+      User user;
       user = userRepository.findById(id);
+      String message = "";
       if (userRepository.isUserLoggedIn(user.getUsername())) {
-        return new Response("success", "User is logged in").createResponse();
+        message = "User is logged in";
       } else {
-        return new Response("error", "User is not logged in").createResponse();
+        message = "User is not logged in";
       }
+      return new Response("message", message).createResponse();
     } catch (Exception e) {
       return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
     }

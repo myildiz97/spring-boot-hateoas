@@ -12,6 +12,7 @@
 /Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/UsernameTooShortException.java
 /Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/UsersNotRetrievedException.java
 /Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/LoginRequest.java
+/Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/AlreadyLoggedInException.java
 /Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/PasswordTooShortException.java
 /Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/Response.java
 /Users/mehmetyildiz/Desktop/coding/Web_Services/rest/spring-boot-hateoas/src/main/java/com/ims/resthateoas/UserRepository.java
