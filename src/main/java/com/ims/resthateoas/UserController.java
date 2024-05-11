@@ -6,7 +6,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
@@ -60,21 +59,19 @@ public class UserController {
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
       @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> getUsers() {
-    List<User> users = new ArrayList<>();
     try {
-      users = userRepository.findAll();
+      List<User> users = new ArrayList<>();
+      users = userRepository.getAllUsers();
       for (User user : users) {
         addUserLinks(user);
       }
+      return new ResponseEntity<>(users, HttpStatus.OK);
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new Response(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).createResponse();
     }
-    return new ResponseEntity<>(users, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}")
@@ -83,21 +80,19 @@ public class UserController {
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
-      @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class))
+      })
   })
   public ResponseEntity<?> getUser(
       @Parameter(description = "User id to be retrieved", required = true) @PathVariable Long id) {
-    User user;
     try {
-      user = userRepository.findById(id);
+      User user = userRepository.findById(id);
       addUserLinks(user);
-    } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(user, HttpStatus.OK);
+    } catch (UserNotFoundException e) {
+      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
     }
-    return new ResponseEntity<>(user, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}/bankname")
@@ -106,8 +101,8 @@ public class UserController {
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
-      @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> getBankName(
       @Parameter(description = "User id to be retrieved of bankname ", required = true) @PathVariable Long id) {
@@ -116,12 +111,10 @@ public class UserController {
     try {
       user = userRepository.findById(id);
       bankName = user.getBankName();
+      return new Response("bankName", bankName).createResponse();
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
     }
-    return new ResponseEntity<>(bankName, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}/accountnumber")
@@ -130,8 +123,8 @@ public class UserController {
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class)) }),
-      @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> getAccountNumber(
       @Parameter(description = "User id to be retrieved of account number", required = true) @PathVariable Long id) {
@@ -140,12 +133,10 @@ public class UserController {
     try {
       user = userRepository.findById(id);
       accountNumber = user.getAccountNumber();
+      return new Response("accountNumber", String.valueOf(accountNumber)).createResponse();
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
     }
-    return new ResponseEntity<>(accountNumber, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}/companyname")
@@ -154,8 +145,8 @@ public class UserController {
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
-      @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> getCompanyName(
       @Parameter(description = "User id to be retrieved of company name", required = true) @PathVariable Long id) {
@@ -164,12 +155,10 @@ public class UserController {
     try {
       user = userRepository.findById(id);
       companyName = user.getCompanyName();
+      return new Response("companyName", companyName).createResponse();
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new Response(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).createResponse();
     }
-    return new ResponseEntity<>(companyName, HttpStatus.OK);
   }
 
   @PutMapping("/users/{id}")
@@ -179,7 +168,7 @@ public class UserController {
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
       @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> updateUser(
       @Parameter(name = "id", description = "User id to be updated", required = true) @PathVariable Long id,
@@ -201,12 +190,10 @@ public class UserController {
 
       userRepository.save(existingUser);
       addUserLinks(existingUser);
+      return new ResponseEntity<>(existingUser, HttpStatus.OK);
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new Response(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).createResponse();
     }
-    return new ResponseEntity<>(existingUser, HttpStatus.OK);
   }
 
   @DeleteMapping("/users/{id}")
@@ -214,29 +201,18 @@ public class UserController {
   @Operation(summary = "Delete a user", description = "Delete a user by ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) }),
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
       @ApiResponse(responseCode = "404", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) }),
-      @ApiResponse(responseCode = "500", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> deleteUser(
       @Parameter(name = "id", description = "User id to be deleted", required = true) @PathVariable Long id) {
-    User user;
     try {
-      user = userRepository.findById(id);
-      if (user == null) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
       userRepository.deleteById(id);
+      return new Response("message", "User deleted successfully").createResponse();
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
     }
-    Map<String, String> success = new HashMap<>();
-    success.put("success", "User deleted successfully");
-    return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
   }
 
   @PostMapping("/users/signup")
@@ -246,20 +222,18 @@ public class UserController {
       @ApiResponse(responseCode = "201", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
       @ApiResponse(responseCode = "409", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> signup(
       @Parameter(name = "user", description = "User object to be created", required = true) @RequestBody User user) {
-    User newUser = new User(user);
     try {
+      User newUser = new User(user);
       userRepository.save(newUser);
       addUserLinks(newUser);
+      return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.CONFLICT);
+      return new Response(e.getMessage(), HttpStatus.CONFLICT).createResponse();
     }
-    return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
   }
 
   @PostMapping("/users/login")
@@ -269,21 +243,39 @@ public class UserController {
       @ApiResponse(responseCode = "200", content = {
           @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
       @ApiResponse(responseCode = "401", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> login(
       @Parameter(name = "login request", description = "User username and password", required = true) @RequestBody LoginRequest loginRequest) {
-    User existingUser;
     try {
-      userRepository.login(loginRequest.getUsername(), loginRequest.getPassword());
-      existingUser = userRepository.findByUsername(loginRequest.getUsername());
-      addUserLinks(existingUser);
+      String username = loginRequest.getUsername();
+      String password = loginRequest.getPassword();
+      User existingUser = userRepository.findByUsername(username);
+
+      HashMap<String, String> message = new HashMap<>();
+      Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
+      message.put("logout", logoutLink.getHref());
+
+      if (userRepository.isUserLoggedIn(username)) {
+        message.put("error", "User is already logged in");
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
+      } else {
+        userRepository.login(username, password);
+        message.put("success", "User logged in successfully");
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
+      }
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+      if (e instanceof UserNotFoundException) {
+        return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+      } else if (e instanceof InvalidPasswordException) {
+        return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+      } else if (e instanceof InvalidUsernameException) {
+        return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+      }
+      return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
     }
-    return new ResponseEntity<>(existingUser, HttpStatus.OK);
   }
 
   @GetMapping("/users/{id}/logout")
@@ -291,38 +283,31 @@ public class UserController {
   @Operation(summary = "Logout a user", description = "Logout a user by ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) }),
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
       @ApiResponse(responseCode = "401", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> userLogout(
       @Parameter(name = "id", description = "User id to be logged out", required = true) @PathVariable Long id) {
-    User user;
     try {
+      User user;
       user = userRepository.findById(id);
-      if (user == null) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
+      HashMap<String, String> message = new HashMap<>();
+      LoginRequest loginRequest = new LoginRequest();
+      Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
+      message.put("login", loginLink.getHref()); // Use getHref() to get the URI as a stri
       if (userRepository.isUserLoggedIn(user.getUsername())) {
         userRepository.logout(user.getUsername());
-        Map<String, String> success = new HashMap<>();
-        success.put("success", "User logged out successfully");
-        LoginRequest loginRequest = new LoginRequest();
-        Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
-        success.put("login", loginLink.getHref()); // Use getHref() to get the URI as a string
-        return new ResponseEntity<Map<String, String>>(success, HttpStatus.OK);
+        message.put("success", "User logged out successfully");
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
+      } else {
+        message.put("error", "User is not logged in yet");
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
       }
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+      return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
     }
-    Map<String, String> message = new HashMap<>();
-    message.put("message", "User is not logged in");
-    LoginRequest loginRequest = new LoginRequest();
-    Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
-    message.put("login", loginLink.getHref()); // Use getHref() to get the URI as a string
-    return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
+
   }
 
   @GetMapping("/users/{id}/loggedin")
@@ -330,31 +315,23 @@ public class UserController {
   @Operation(summary = "Check if user is logged in", description = "Check if user is logged in by ID")
   @ApiResponses({
       @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) }),
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
       @ApiResponse(responseCode = "401", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)) })
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
   })
   public ResponseEntity<?> isUserLoggedIn(
       @Parameter(name = "id", description = "User id to be checked as logged in", required = true) @PathVariable Long id) {
     User user;
     try {
       user = userRepository.findById(id);
-      if (user == null) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
       if (userRepository.isUserLoggedIn(user.getUsername())) {
-        Map<String, String> message = new HashMap<>();
-        message.put("message", "User is logged in");
-        return new ResponseEntity<Map<String, String>>(message, HttpStatus.OK);
+        return new Response("success", "User is logged in").createResponse();
+      } else {
+        return new Response("error", "User is not logged in").createResponse();
       }
     } catch (Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", e.getMessage());
-      return new ResponseEntity<Map<String, String>>(error, HttpStatus.UNAUTHORIZED);
+      return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
     }
-    Map<String, String> message = new HashMap<>();
-    message.put("message", "User is not logged in");
-    return new ResponseEntity<Map<String, String>>(message, HttpStatus.UNAUTHORIZED);
   }
 
 }

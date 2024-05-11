@@ -10,9 +10,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class UserRepository {
-  // Mapping of id to User
   private Map<Long, User> users = new HashMap<>();
-  private Map<Long, Boolean> usersLoggedIn = new HashMap<>();
 
   @PostConstruct
   public void initData() {
@@ -31,7 +29,6 @@ public class UserRepository {
     customer.setUsername("mehmetyildiz");
 
     users.put(customer.getId(), customer);
-    usersLoggedIn.put(customer.getId(), false);
 
     User supplier = new User();
     supplier.setName("Deniz");
@@ -47,7 +44,6 @@ public class UserRepository {
     supplier.setUsername("sdenizu");
 
     users.put(supplier.getId(), supplier);
-    usersLoggedIn.put(supplier.getId(), true);
 
     User importManager = new User();
     importManager.setName("Umut");
@@ -63,10 +59,9 @@ public class UserRepository {
     importManager.setUsername("uoztop");
 
     users.put(importManager.getId(), importManager);
-    usersLoggedIn.put(importManager.getId(), true);
   }
 
-  public List<User> findAll() {
+  public List<User> getAllUsers() {
     return users.values().stream().toList();
   }
 
@@ -113,7 +108,6 @@ public class UserRepository {
         throw new UserAlreadyExistsException();
       } else {
         users.put(user.getId(), user);
-        usersLoggedIn.put(user.getId(), false);
         user.setLoggedIn(false);
         return true;
       }
@@ -130,7 +124,6 @@ public class UserRepository {
     } else if (!existingUser.getUsername().equals(username)) {
       throw new InvalidUsernameException(username);
     } else {
-      usersLoggedIn.put(existingUser.getId(), true);
       existingUser.setLoggedIn(true);
       return true;
     }
@@ -143,10 +136,9 @@ public class UserRepository {
       throw new UserNotFoundException();
     } else if (!existingUser.getUsername().equals(username)) {
       throw new InvalidUsernameException(username);
-    } else if (usersLoggedIn.get(existingUser.getId()) == false) {
+    } else if (!existingUser.isLoggedIn()) {
       throw new UserNotLoggedInException();
     } else {
-      usersLoggedIn.put(existingUser.getId(), false);
       existingUser.setLoggedIn(false);
       return true;
     }
