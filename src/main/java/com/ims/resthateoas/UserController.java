@@ -3,7 +3,6 @@ package com.ims.resthateoas;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -63,14 +62,13 @@ public class UserController {
   })
   public ResponseEntity<?> getUsers() {
     try {
-      List<User> users = new ArrayList<>();
-      users = userRepository.getAllUsers();
+      List<User> users = userRepository.getAllUsers();
       for (User user : users) {
         addUserLinks(user);
       }
-      return new ResponseEntity<>(users, HttpStatus.OK);
+      return new ResponseEntity<List<User>>(users, HttpStatus.OK);
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
     }
   }
 
@@ -89,9 +87,9 @@ public class UserController {
     try {
       User user = userRepository.findById(id);
       addUserLinks(user);
-      return new ResponseEntity<>(user, HttpStatus.OK);
+      return new ResponseEntity<User>(user, HttpStatus.OK);
     } catch (UserNotFoundException e) {
-      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
 
@@ -106,14 +104,12 @@ public class UserController {
   })
   public ResponseEntity<?> getBankName(
       @Parameter(description = "User id to be retrieved of bankname ", required = true) @PathVariable Long id) {
-    String bankName;
-    User user;
     try {
-      user = userRepository.findById(id);
-      bankName = user.getBankName();
-      return new Response("bankName", bankName).createResponse();
+      User user = userRepository.findById(id);
+      String bankName = user.getBankName();
+      return new CustomResponse("bankName", bankName).getResponse();
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
 
@@ -128,14 +124,12 @@ public class UserController {
   })
   public ResponseEntity<?> getAccountNumber(
       @Parameter(description = "User id to be retrieved of account number", required = true) @PathVariable Long id) {
-    long accountNumber;
-    User user;
     try {
-      user = userRepository.findById(id);
-      accountNumber = user.getAccountNumber();
-      return new Response("accountNumber", String.valueOf(accountNumber)).createResponse();
+      User user = userRepository.findById(id);
+      long accountNumber = user.getAccountNumber();
+      return new CustomResponse("accountNumber", String.valueOf(accountNumber)).getResponse();
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
 
@@ -150,14 +144,12 @@ public class UserController {
   })
   public ResponseEntity<?> getCompanyName(
       @Parameter(description = "User id to be retrieved of company name", required = true) @PathVariable Long id) {
-    String companyName;
-    User user;
     try {
-      user = userRepository.findById(id);
-      companyName = user.getCompanyName();
-      return new Response("companyName", companyName).createResponse();
+      User user = userRepository.findById(id);
+      String companyName = user.getCompanyName();
+      return new CustomResponse("companyName", companyName).getResponse();
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
 
@@ -177,9 +169,9 @@ public class UserController {
       user.setId(id);
       User existingUser = userRepository.update(user);
       addUserLinks(existingUser);
-      return new ResponseEntity<>(existingUser, HttpStatus.OK);
+      return new ResponseEntity<User>(existingUser, HttpStatus.OK);
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
     }
   }
 
@@ -196,9 +188,9 @@ public class UserController {
       @Parameter(name = "id", description = "User id to be deleted", required = true) @PathVariable Long id) {
     try {
       userRepository.deleteById(id);
-      return new Response("message", "User deleted successfully").createResponse();
+      return new CustomResponse("message", "User deleted successfully").getResponse();
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
 
@@ -218,7 +210,7 @@ public class UserController {
       addUserLinks(user);
       return new ResponseEntity<User>(user, HttpStatus.CREATED);
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.CONFLICT).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.CONFLICT).getResponse();
     }
   }
 
@@ -243,14 +235,15 @@ public class UserController {
 
       Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
       message.put("logout", logoutLink.getHref());
+
       userRepository.login(username, password);
       message.put("success", "User logged in successfully");
       return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
     } catch (Exception e) {
       if (e instanceof UserNotFoundException) {
-        return new Response(e.getMessage(), HttpStatus.NOT_FOUND).createResponse();
+        return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
       } else if (e instanceof InvalidPasswordException || e instanceof InvalidUsernameException) {
-        return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+        return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
       } else if (e instanceof AlreadyLoggedInException) {
         User existingUser = userRepository.findByUsername(username);
         Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
@@ -258,7 +251,7 @@ public class UserController {
         message.put("error", e.getMessage());
         return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
       }
-      return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
     }
   }
 
@@ -274,12 +267,11 @@ public class UserController {
   public ResponseEntity<?> userLogout(
       @Parameter(name = "id", description = "User id to be logged out", required = true) @PathVariable Long id) {
     try {
-      User user;
-      user = userRepository.findById(id);
+      User user = userRepository.findById(id);
       HashMap<String, String> message = new HashMap<>();
       LoginRequest loginRequest = new LoginRequest();
       Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
-      message.put("login", loginLink.getHref()); // Use getHref() to get the URI as a stri
+      message.put("login", loginLink.getHref());
       if (userRepository.isUserLoggedIn(user.getUsername())) {
         userRepository.logout(user.getUsername());
         message.put("success", "User logged out successfully");
@@ -289,9 +281,8 @@ public class UserController {
         return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
       }
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
     }
-
   }
 
   @GetMapping("/users/{id}/loggedin")
@@ -306,17 +297,16 @@ public class UserController {
   public ResponseEntity<?> isUserLoggedIn(
       @Parameter(name = "id", description = "User id to be checked as logged in", required = true) @PathVariable Long id) {
     try {
-      User user;
-      user = userRepository.findById(id);
-      String message = "";
+      User user = userRepository.findById(id);
+      String status = "";
       if (userRepository.isUserLoggedIn(user.getUsername())) {
-        message = "User is logged in";
+        status = "User is logged in";
       } else {
-        message = "User is not logged in";
+        status = "User is not logged in";
       }
-      return new Response("message", message).createResponse();
+      return new CustomResponse("status", status).getResponse();
     } catch (Exception e) {
-      return new Response(e.getMessage(), HttpStatus.UNAUTHORIZED).createResponse();
+      return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
     }
   }
 

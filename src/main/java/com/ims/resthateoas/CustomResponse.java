@@ -10,27 +10,25 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Response {
+public class CustomResponse {
   private HashMap<String, String> mapping;
   private String message;
   private String messageKey;
   private static final String DEFAULT_MESSAGE_KEY = "error";
   private HttpStatus status = HttpStatus.OK;
-  private ResponseEntity<HashMap<String, String>> response;
 
-  public Response() {
+  public CustomResponse() {
     this.mapping = new HashMap<>();
-    this.response = new ResponseEntity<>(mapping, status);
   }
 
-  public Response(String message) {
+  public CustomResponse(String message) {
     this();
     this.messageKey = DEFAULT_MESSAGE_KEY;
     this.message = message;
     this.mapping.put(messageKey, message);
   }
 
-  public Response(String message, HttpStatus status) {
+  public CustomResponse(String message, HttpStatus status) {
     this();
     this.messageKey = DEFAULT_MESSAGE_KEY;
     this.message = message;
@@ -38,19 +36,19 @@ public class Response {
     this.status = status;
   }
 
-  public Response(String messageKey, String message) {
+  public CustomResponse(String messageKey, String message) {
     this();
     this.messageKey = messageKey;
     this.message = message;
     this.mapping.put(messageKey, message);
   }
 
-  public Response(String messageKey, String message, HttpStatus status) {
+  public CustomResponse(String messageKey, String message, HttpStatus status) {
     this(messageKey, message);
     this.status = status;
   }
 
-  public ResponseEntity<HashMap<String, String>> createResponse() {
-    return new ResponseEntity<>(mapping, status);
+  public ResponseEntity<HashMap<String, String>> getResponse() {
+    return new ResponseEntity<HashMap<String, String>>(mapping, status);
   }
 }

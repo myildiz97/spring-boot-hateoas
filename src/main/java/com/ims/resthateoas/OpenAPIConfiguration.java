@@ -21,7 +21,7 @@ public class OpenAPIConfiguration {
     Info information = new Info()
         .title("Inventory Management System API")
         .version("1.0")
-        .description("This API exposes endpoints to manage employees.");
+        .description("This API maintains endpoints to manage inventory.");
     return new OpenAPI().info(information).servers(List.of(server));
   }
 }

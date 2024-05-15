@@ -27,6 +27,7 @@ public class UserRepository {
     customer.setPassword("mehmet123");
     customer.setPhone("0553 130 95 98");
     customer.setUsername("mehmetyildiz");
+    customer.setLoggedIn(true);
 
     users.put(customer.getId(), customer);
 
@@ -70,7 +71,7 @@ public class UserRepository {
     if (user == null) {
       throw new UserNotFoundException();
     }
-    return users.get(id);
+    return user;
   }
 
   public User findByUsername(String username) {
@@ -80,15 +81,6 @@ public class UserRepository {
       }
     }
     throw new UserNotFoundException();
-  }
-
-  public void deleteById(Long id) {
-    User user = users.get(id);
-
-    if (user == null) {
-      throw new UserNotFoundException();
-    }
-    users.remove(id);
   }
 
   public boolean save(User user) {
@@ -111,6 +103,47 @@ public class UserRepository {
         user.setLoggedIn(false);
         return true;
       }
+    }
+  }
+
+  public void login(String username, String password) {
+    User existingUser = findByUsername(username);
+
+    if (existingUser == null) {
+      throw new UserNotFoundException();
+    } else if (!existingUser.getPassword().equals(password)) {
+      throw new InvalidPasswordException();
+    } else if (!existingUser.getUsername().equals(username)) {
+      throw new InvalidUsernameException();
+    } else if (existingUser.isLoggedIn()) {
+      throw new AlreadyLoggedInException();
+    } else {
+      existingUser.setLoggedIn(true);
+    }
+  }
+
+  public boolean logout(String username) {
+    User existingUser = findByUsername(username);
+
+    if (existingUser == null) {
+      throw new UserNotFoundException();
+    } else if (!existingUser.getUsername().equals(username)) {
+      throw new InvalidUsernameException(username);
+    } else if (!existingUser.isLoggedIn()) {
+      throw new UserNotLoggedInException();
+    } else {
+      existingUser.setLoggedIn(false);
+      return true;
+    }
+  }
+
+  public boolean isUserLoggedIn(String username) {
+    User existingUser = findByUsername(username);
+
+    if (existingUser == null) {
+      throw new UserNotFoundException();
+    } else {
+      return existingUser.isLoggedIn();
     }
   }
 
@@ -138,46 +171,13 @@ public class UserRepository {
     }
   }
 
-  public boolean login(String username, String password) {
-    User existingUser = findByUsername(username);
+  public void deleteById(Long id) {
+    User user = users.get(id);
 
-    if (existingUser == null) {
+    if (user == null) {
       throw new UserNotFoundException();
-    } else if (!existingUser.getPassword().equals(password)) {
-      throw new InvalidPasswordException();
-    } else if (!existingUser.getUsername().equals(username)) {
-      throw new InvalidUsernameException();
-    } else if (existingUser.isLoggedIn()) {
-      throw new AlreadyLoggedInException();
-    } else {
-      existingUser.setLoggedIn(true);
-      return true;
     }
-  }
-
-  public boolean logout(String username) {
-    User existingUser = findByUsername(username);
-
-    if (existingUser == null) {
-      throw new UserNotFoundException();
-    } else if (!existingUser.getUsername().equals(username)) {
-      throw new InvalidUsernameException(username);
-    } else if (!existingUser.isLoggedIn()) {
-      throw new UserNotLoggedInException();
-    } else {
-      existingUser.setLoggedIn(false);
-      return true;
-    }
-  }
-
-  public boolean isUserLoggedIn(String username) {
-    User existingUser = findByUsername(username);
-
-    if (existingUser == null) {
-      throw new UserNotFoundException();
-    } else {
-      return existingUser.isLoggedIn();
-    }
+    users.remove(id);
   }
 
 }
