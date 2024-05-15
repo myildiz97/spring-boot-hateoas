@@ -93,6 +93,122 @@ public class UserController {
     }
   }
 
+  @PostMapping("/users/signup")
+  @Tag(name = "Users", description = "User operations")
+  @Operation(summary = "Signup a user", description = "Signup a user")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
+      @ApiResponse(responseCode = "500", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  })
+  public ResponseEntity<?> signup(
+      @Parameter(name = "user", description = "User object to be created", required = true) @RequestBody User user) {
+    try {
+      userRepository.save(user);
+      addUserLinks(user);
+      return new ResponseEntity<User>(user, HttpStatus.OK);
+    } catch (Exception e) {
+      return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
+    }
+  }
+
+  @PostMapping("/users/login")
+  @Tag(name = "Login-Logout", description = "User login logout operations")
+  @Operation(summary = "Login a user", description = "Login a user")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
+      @ApiResponse(responseCode = "500", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  })
+  public ResponseEntity<?> login(
+      @Parameter(name = "login request", description = "User username and password", required = true) @RequestBody LoginRequest loginRequest) {
+    HashMap<String, String> message = new HashMap<>();
+    String username = loginRequest.getUsername();
+    String password = loginRequest.getPassword();
+    try {
+      User existingUser = userRepository.findByUsername(username);
+
+      Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
+      message.put("logout", logoutLink.getHref());
+
+      userRepository.login(username, password);
+      message.put("success", "User logged in successfully");
+      return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
+    } catch (Exception e) {
+      if (e instanceof UserNotFoundException) {
+        return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
+      } else if (e instanceof InvalidPasswordException || e instanceof InvalidUsernameException) {
+        return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
+      } else if (e instanceof AlreadyLoggedInException) {
+        User existingUser = userRepository.findByUsername(username);
+        Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
+        message.put("logout", logoutLink.getHref());
+        message.put("error", e.getMessage());
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
+    }
+  }
+
+  @GetMapping("/users/{id}/logout")
+  @Tag(name = "Login-Logout", description = "User login logout operations")
+  @Operation(summary = "Logout a user", description = "Logout a user by ID")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
+      @ApiResponse(responseCode = "500", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  })
+  public ResponseEntity<?> userLogout(
+      @Parameter(name = "id", description = "User id to be logged out", required = true) @PathVariable Long id) {
+    try {
+      User user = userRepository.findById(id);
+      HashMap<String, String> message = new HashMap<>();
+      LoginRequest loginRequest = new LoginRequest();
+      Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
+      message.put("login", loginLink.getHref());
+      if (userRepository.isUserLoggedIn(user.getUsername())) {
+        userRepository.logout(user.getUsername());
+        message.put("success", "User logged out successfully");
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
+      } else {
+        message.put("error", "User is not logged in yet");
+        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    } catch (Exception e) {
+      return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
+    }
+  }
+
+  @GetMapping("/users/{id}/loggedin")
+  @Tag(name = "Login-Logout", description = "User login logout operations")
+  @Operation(summary = "Check if user is logged in", description = "Check if user is logged in by ID")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
+      @ApiResponse(responseCode = "500", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  })
+  public ResponseEntity<?> isUserLoggedIn(
+      @Parameter(name = "id", description = "User id to be checked as logged in", required = true) @PathVariable Long id) {
+    try {
+      User user = userRepository.findById(id);
+      String status = "";
+      if (userRepository.isUserLoggedIn(user.getUsername())) {
+        status = "User is logged in";
+      } else {
+        status = "User is not logged in";
+      }
+      return new CustomResponse("status", status).getResponse();
+    } catch (Exception e) {
+      return new CustomResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR).getResponse();
+    }
+  }
+
   @GetMapping("/users/{id}/bankname")
   @Tag(name = "Users", description = "User operations")
   @Operation(summary = "Get bank name", description = "Get bank name by user ID")
@@ -191,122 +307,6 @@ public class UserController {
       return new CustomResponse("message", "User deleted successfully").getResponse();
     } catch (Exception e) {
       return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
-    }
-  }
-
-  @PostMapping("/users/signup")
-  @Tag(name = "Users", description = "User operations")
-  @Operation(summary = "Signup a user", description = "Signup a user")
-  @ApiResponses({
-      @ApiResponse(responseCode = "201", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
-      @ApiResponse(responseCode = "409", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
-  })
-  public ResponseEntity<?> signup(
-      @Parameter(name = "user", description = "User object to be created", required = true) @RequestBody User user) {
-    try {
-      userRepository.save(user);
-      addUserLinks(user);
-      return new ResponseEntity<User>(user, HttpStatus.CREATED);
-    } catch (Exception e) {
-      return new CustomResponse(e.getMessage(), HttpStatus.CONFLICT).getResponse();
-    }
-  }
-
-  @PostMapping("/users/login")
-  @Tag(name = "Login-Logout", description = "User login logout operations")
-  @Operation(summary = "Login a user", description = "Login a user")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }),
-      @ApiResponse(responseCode = "401", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
-      @ApiResponse(responseCode = "404", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
-  })
-  public ResponseEntity<?> login(
-      @Parameter(name = "login request", description = "User username and password", required = true) @RequestBody LoginRequest loginRequest) {
-    HashMap<String, String> message = new HashMap<>();
-    String username = loginRequest.getUsername();
-    String password = loginRequest.getPassword();
-    try {
-      User existingUser = userRepository.findByUsername(username);
-
-      Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
-      message.put("logout", logoutLink.getHref());
-
-      userRepository.login(username, password);
-      message.put("success", "User logged in successfully");
-      return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
-    } catch (Exception e) {
-      if (e instanceof UserNotFoundException) {
-        return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
-      } else if (e instanceof InvalidPasswordException || e instanceof InvalidUsernameException) {
-        return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
-      } else if (e instanceof AlreadyLoggedInException) {
-        User existingUser = userRepository.findByUsername(username);
-        Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
-        message.put("logout", logoutLink.getHref());
-        message.put("error", e.getMessage());
-        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
-      }
-      return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
-    }
-  }
-
-  @GetMapping("/users/{id}/logout")
-  @Tag(name = "Login-Logout", description = "User login logout operations")
-  @Operation(summary = "Logout a user", description = "Logout a user by ID")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
-      @ApiResponse(responseCode = "401", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
-  })
-  public ResponseEntity<?> userLogout(
-      @Parameter(name = "id", description = "User id to be logged out", required = true) @PathVariable Long id) {
-    try {
-      User user = userRepository.findById(id);
-      HashMap<String, String> message = new HashMap<>();
-      LoginRequest loginRequest = new LoginRequest();
-      Link loginLink = linkTo(methodOn(UserController.class).login(loginRequest)).withRel("login");
-      message.put("login", loginLink.getHref());
-      if (userRepository.isUserLoggedIn(user.getUsername())) {
-        userRepository.logout(user.getUsername());
-        message.put("success", "User logged out successfully");
-        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.OK);
-      } else {
-        message.put("error", "User is not logged in yet");
-        return new ResponseEntity<HashMap<String, String>>(message, HttpStatus.UNAUTHORIZED);
-      }
-    } catch (Exception e) {
-      return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
-    }
-  }
-
-  @GetMapping("/users/{id}/loggedin")
-  @Tag(name = "Login-Logout", description = "User login logout operations")
-  @Operation(summary = "Check if user is logged in", description = "Check if user is logged in by ID")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
-      @ApiResponse(responseCode = "401", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
-  })
-  public ResponseEntity<?> isUserLoggedIn(
-      @Parameter(name = "id", description = "User id to be checked as logged in", required = true) @PathVariable Long id) {
-    try {
-      User user = userRepository.findById(id);
-      String status = "";
-      if (userRepository.isUserLoggedIn(user.getUsername())) {
-        status = "User is logged in";
-      } else {
-        status = "User is not logged in";
-      }
-      return new CustomResponse("status", status).getResponse();
-    } catch (Exception e) {
-      return new CustomResponse(e.getMessage(), HttpStatus.UNAUTHORIZED).getResponse();
     }
   }
 
