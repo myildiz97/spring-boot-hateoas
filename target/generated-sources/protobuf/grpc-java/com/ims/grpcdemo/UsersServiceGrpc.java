@@ -18,66 +18,35 @@ public final class UsersServiceGrpc {
   public static final String SERVICE_NAME = "users.UsersService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<com.ims.grpcdemo.LoginUserRequest,
-      com.ims.grpcdemo.LoginUserResponse> getLoginUserMethod;
+  private static volatile io.grpc.MethodDescriptor<com.ims.grpcdemo.CapabilityOfUserRequest,
+      com.ims.grpcdemo.CapabilityOfUserResponse> getCapabilityOfUserMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "LoginUser",
-      requestType = com.ims.grpcdemo.LoginUserRequest.class,
-      responseType = com.ims.grpcdemo.LoginUserResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "CapabilityOfUser",
+      requestType = com.ims.grpcdemo.CapabilityOfUserRequest.class,
+      responseType = com.ims.grpcdemo.CapabilityOfUserResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<com.ims.grpcdemo.LoginUserRequest,
-      com.ims.grpcdemo.LoginUserResponse> getLoginUserMethod() {
-    io.grpc.MethodDescriptor<com.ims.grpcdemo.LoginUserRequest, com.ims.grpcdemo.LoginUserResponse> getLoginUserMethod;
-    if ((getLoginUserMethod = UsersServiceGrpc.getLoginUserMethod) == null) {
+  public static io.grpc.MethodDescriptor<com.ims.grpcdemo.CapabilityOfUserRequest,
+      com.ims.grpcdemo.CapabilityOfUserResponse> getCapabilityOfUserMethod() {
+    io.grpc.MethodDescriptor<com.ims.grpcdemo.CapabilityOfUserRequest, com.ims.grpcdemo.CapabilityOfUserResponse> getCapabilityOfUserMethod;
+    if ((getCapabilityOfUserMethod = UsersServiceGrpc.getCapabilityOfUserMethod) == null) {
       synchronized (UsersServiceGrpc.class) {
-        if ((getLoginUserMethod = UsersServiceGrpc.getLoginUserMethod) == null) {
-          UsersServiceGrpc.getLoginUserMethod = getLoginUserMethod =
-              io.grpc.MethodDescriptor.<com.ims.grpcdemo.LoginUserRequest, com.ims.grpcdemo.LoginUserResponse>newBuilder()
+        if ((getCapabilityOfUserMethod = UsersServiceGrpc.getCapabilityOfUserMethod) == null) {
+          UsersServiceGrpc.getCapabilityOfUserMethod = getCapabilityOfUserMethod =
+              io.grpc.MethodDescriptor.<com.ims.grpcdemo.CapabilityOfUserRequest, com.ims.grpcdemo.CapabilityOfUserResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "LoginUser"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CapabilityOfUser"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.ims.grpcdemo.LoginUserRequest.getDefaultInstance()))
+                  com.ims.grpcdemo.CapabilityOfUserRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.ims.grpcdemo.LoginUserResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new UsersServiceMethodDescriptorSupplier("LoginUser"))
+                  com.ims.grpcdemo.CapabilityOfUserResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new UsersServiceMethodDescriptorSupplier("CapabilityOfUser"))
               .build();
         }
       }
     }
-    return getLoginUserMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<com.ims.grpcdemo.SignupUserRequest,
-      com.ims.grpcdemo.SignupUserResponse> getSignupUserMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "SignupUser",
-      requestType = com.ims.grpcdemo.SignupUserRequest.class,
-      responseType = com.ims.grpcdemo.SignupUserResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<com.ims.grpcdemo.SignupUserRequest,
-      com.ims.grpcdemo.SignupUserResponse> getSignupUserMethod() {
-    io.grpc.MethodDescriptor<com.ims.grpcdemo.SignupUserRequest, com.ims.grpcdemo.SignupUserResponse> getSignupUserMethod;
-    if ((getSignupUserMethod = UsersServiceGrpc.getSignupUserMethod) == null) {
-      synchronized (UsersServiceGrpc.class) {
-        if ((getSignupUserMethod = UsersServiceGrpc.getSignupUserMethod) == null) {
-          UsersServiceGrpc.getSignupUserMethod = getSignupUserMethod =
-              io.grpc.MethodDescriptor.<com.ims.grpcdemo.SignupUserRequest, com.ims.grpcdemo.SignupUserResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SignupUser"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.ims.grpcdemo.SignupUserRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.ims.grpcdemo.SignupUserResponse.getDefaultInstance()))
-              .setSchemaDescriptor(new UsersServiceMethodDescriptorSupplier("SignupUser"))
-              .build();
-        }
-      }
-    }
-    return getSignupUserMethod;
+    return getCapabilityOfUserMethod;
   }
 
   /**
@@ -133,40 +102,23 @@ public final class UsersServiceGrpc {
 
     /**
      * <pre>
-     * Logs in a user.
+     * Returns the capabilities of the user.
      * </pre>
      */
-    public void loginUser(com.ims.grpcdemo.LoginUserRequest request,
-        io.grpc.stub.StreamObserver<com.ims.grpcdemo.LoginUserResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getLoginUserMethod(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     * Signs up a new user.
-     * </pre>
-     */
-    public void signupUser(com.ims.grpcdemo.SignupUserRequest request,
-        io.grpc.stub.StreamObserver<com.ims.grpcdemo.SignupUserResponse> responseObserver) {
-      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSignupUserMethod(), responseObserver);
+    public void capabilityOfUser(com.ims.grpcdemo.CapabilityOfUserRequest request,
+        io.grpc.stub.StreamObserver<com.ims.grpcdemo.CapabilityOfUserResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCapabilityOfUserMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getLoginUserMethod(),
+            getCapabilityOfUserMethod(),
             io.grpc.stub.ServerCalls.asyncUnaryCall(
               new MethodHandlers<
-                com.ims.grpcdemo.LoginUserRequest,
-                com.ims.grpcdemo.LoginUserResponse>(
-                  this, METHODID_LOGIN_USER)))
-          .addMethod(
-            getSignupUserMethod(),
-            io.grpc.stub.ServerCalls.asyncUnaryCall(
-              new MethodHandlers<
-                com.ims.grpcdemo.SignupUserRequest,
-                com.ims.grpcdemo.SignupUserResponse>(
-                  this, METHODID_SIGNUP_USER)))
+                com.ims.grpcdemo.CapabilityOfUserRequest,
+                com.ims.grpcdemo.CapabilityOfUserResponse>(
+                  this, METHODID_CAPABILITY_OF_USER)))
           .build();
     }
   }
@@ -190,24 +142,13 @@ public final class UsersServiceGrpc {
 
     /**
      * <pre>
-     * Logs in a user.
+     * Returns the capabilities of the user.
      * </pre>
      */
-    public void loginUser(com.ims.grpcdemo.LoginUserRequest request,
-        io.grpc.stub.StreamObserver<com.ims.grpcdemo.LoginUserResponse> responseObserver) {
+    public void capabilityOfUser(com.ims.grpcdemo.CapabilityOfUserRequest request,
+        io.grpc.stub.StreamObserver<com.ims.grpcdemo.CapabilityOfUserResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getLoginUserMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     * Signs up a new user.
-     * </pre>
-     */
-    public void signupUser(com.ims.grpcdemo.SignupUserRequest request,
-        io.grpc.stub.StreamObserver<com.ims.grpcdemo.SignupUserResponse> responseObserver) {
-      io.grpc.stub.ClientCalls.asyncUnaryCall(
-          getChannel().newCall(getSignupUserMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCapabilityOfUserMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -230,22 +171,12 @@ public final class UsersServiceGrpc {
 
     /**
      * <pre>
-     * Logs in a user.
+     * Returns the capabilities of the user.
      * </pre>
      */
-    public com.ims.grpcdemo.LoginUserResponse loginUser(com.ims.grpcdemo.LoginUserRequest request) {
+    public com.ims.grpcdemo.CapabilityOfUserResponse capabilityOfUser(com.ims.grpcdemo.CapabilityOfUserRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getLoginUserMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     * Signs up a new user.
-     * </pre>
-     */
-    public com.ims.grpcdemo.SignupUserResponse signupUser(com.ims.grpcdemo.SignupUserRequest request) {
-      return io.grpc.stub.ClientCalls.blockingUnaryCall(
-          getChannel(), getSignupUserMethod(), getCallOptions(), request);
+          getChannel(), getCapabilityOfUserMethod(), getCallOptions(), request);
     }
   }
 
@@ -268,29 +199,17 @@ public final class UsersServiceGrpc {
 
     /**
      * <pre>
-     * Logs in a user.
+     * Returns the capabilities of the user.
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<com.ims.grpcdemo.LoginUserResponse> loginUser(
-        com.ims.grpcdemo.LoginUserRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<com.ims.grpcdemo.CapabilityOfUserResponse> capabilityOfUser(
+        com.ims.grpcdemo.CapabilityOfUserRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getLoginUserMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     * Signs up a new user.
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<com.ims.grpcdemo.SignupUserResponse> signupUser(
-        com.ims.grpcdemo.SignupUserRequest request) {
-      return io.grpc.stub.ClientCalls.futureUnaryCall(
-          getChannel().newCall(getSignupUserMethod(), getCallOptions()), request);
+          getChannel().newCall(getCapabilityOfUserMethod(), getCallOptions()), request);
     }
   }
 
-  private static final int METHODID_LOGIN_USER = 0;
-  private static final int METHODID_SIGNUP_USER = 1;
+  private static final int METHODID_CAPABILITY_OF_USER = 0;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -309,13 +228,9 @@ public final class UsersServiceGrpc {
     @java.lang.SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
-        case METHODID_LOGIN_USER:
-          serviceImpl.loginUser((com.ims.grpcdemo.LoginUserRequest) request,
-              (io.grpc.stub.StreamObserver<com.ims.grpcdemo.LoginUserResponse>) responseObserver);
-          break;
-        case METHODID_SIGNUP_USER:
-          serviceImpl.signupUser((com.ims.grpcdemo.SignupUserRequest) request,
-              (io.grpc.stub.StreamObserver<com.ims.grpcdemo.SignupUserResponse>) responseObserver);
+        case METHODID_CAPABILITY_OF_USER:
+          serviceImpl.capabilityOfUser((com.ims.grpcdemo.CapabilityOfUserRequest) request,
+              (io.grpc.stub.StreamObserver<com.ims.grpcdemo.CapabilityOfUserResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -378,8 +293,7 @@ public final class UsersServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new UsersServiceFileDescriptorSupplier())
-              .addMethod(getLoginUserMethod())
-              .addMethod(getSignupUserMethod())
+              .addMethod(getCapabilityOfUserMethod())
               .build();
         }
       }

@@ -107,7 +107,7 @@ public enum Role
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return com.ims.grpcdemo.Users.getDescriptor().getEnumTypes().get(1);
+    return com.ims.grpcdemo.Users.getDescriptor().getEnumTypes().get(0);
   }
 
   private static final Role[] VALUES = values();

@@ -19,9 +19,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ims.grpcdemo.LoginUserRequest;
-import com.ims.grpcdemo.LoginUserResponse;
+import com.ims.grpcdemo.CapabilityOfUserRequest;
+import com.ims.grpcdemo.CapabilityOfUserRequest;
+import com.ims.grpcdemo.CapabilityOfUserResponse;
+import com.ims.grpcdemo.Role;
 import com.ims.grpcdemo.UsersServiceGrpc;
+import com.ims.resthateoas.User.UserRoles;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -142,6 +145,9 @@ public class UserController {
 
       Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
       message.put("logout", logoutLink.getHref());
+
+      Link capabilitiesLink = linkTo(methodOn(UserController.class).getUserCapabilities(existingUser.getRole())).withRel("capabilities");
+      message.put("capabilities", capabilitiesLink.getHref());
 
       userRepository.login(username, password);
       message.put("success", "User logged in successfully");
@@ -276,34 +282,40 @@ public class UserController {
       return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
-
   
-  @GetMapping("users/grpc/{id}")
-  @Tag(name = "Users", description = "User operations")
-  @Operation(summary = "Get extra info from grpc", description = "Get the extra information for the user from grpc.")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
-      @ApiResponse(responseCode = "404", content = {
-          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
-  })
-  public ResponseEntity<?> getExtraInformation(
-      @Parameter(description = "User id for extra information", required = true) @PathVariable Long id) {
+  @GetMapping("users/grpc/capability/{role}")
+  public ResponseEntity<?> getUserCapabilities(@PathVariable UserRoles role) {
     try {
       ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8181)
           .usePlaintext()
           .build();
-
+      Role grpcRole;
+      switch (role) {
+        case CUSTOMER:
+          grpcRole = Role.CUSTOMER;
+          break;
+        case ADMIN:
+          grpcRole = Role.ADMIN;
+          break;
+        case IMPORT_MANAGER:
+          grpcRole = Role.IMPORT_MANAGER;
+          break;
+        case SUPPLIER:
+          grpcRole = Role.SUPPLIER;
+          break;
+        default:
+          grpcRole = Role.UNRECOGNIZED;
+          break;
+      }
       UsersServiceGrpc.UsersServiceBlockingStub stub = UsersServiceGrpc.newBlockingStub(channel);
-      LoginUserRequest request = LoginUserRequest.newBuilder().build();
-      LoginUserResponse response = stub.loginUser(request);
+      CapabilityOfUserRequest request = CapabilityOfUserRequest.newBuilder().setUserType(grpcRole).build();
+      CapabilityOfUserResponse response = stub.capabilityOfUser(request);
 
-      return new CustomResponse("found", response.getSuccess()).getResponse();
+      return new CustomResponse("Capabilities", response.getCapabilities()).getResponse();
     } catch (Exception e) {
       return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
-
 
   @PutMapping("/users/{id}")
   @Tag(name = "Users", description = "User operations")

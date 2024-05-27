@@ -8,13 +8,6 @@ option java_package = "com.ims.grpcdemo";
 
 import "google/protobuf/empty.proto";
 
-// Enum for gender
-enum Gender {
-  MALE = 0;
-  FEMALE = 1;
-  OTHER = 2;
-}
-
 // Enum for role
 enum Role {
   CUSTOMER = 0;
@@ -23,52 +16,18 @@ enum Role {
   ADMIN = 3;
 }
 
-// The user message containing the user's details.
-message User {
-  string name = 1;
-  string birthday = 2;
-  Gender gender = 3;
-  string username = 4;
-  Role role = 5;
-  string email = 6;
-  string password = 7;
-  string phone = 8;
-  string bank_name = 9;
-  int64 account_no = 10;
-  string company_name = 11;
-}
-
 // The request message for login.
-message LoginUserRequest {
-  string username = 1;
-  string password = 2;
+message CapabilityOfUserRequest {
+  Role userType = 1;
 }
 
 // The response message for login.
-message LoginUserResponse {
-  string success = 1;
-}
-
-// The request message for signup.
-message SignupUserRequest {
-  User user = 1;
-}
-
-// The response message for signup.
-message SignupUserResponse {
-  string success = 1;
-}
-
-// The error message containing error code and message.
-message UserFault {
-  int32 code = 1;
-  string message = 2;
+message CapabilityOfUserResponse {
+  string capabilities = 1;
 }
 
 // The Users service definition.
 service UsersService {
-  // Logs in a user.
-  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
-  // Signs up a new user.
-  rpc SignupUser(SignupUserRequest) returns (SignupUserResponse);
+  // Returns the capabilities of the user.
+  rpc CapabilityOfUser(CapabilityOfUserRequest) returns (CapabilityOfUserResponse);
 }
