@@ -19,6 +19,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ims.grpcdemo.LoginUserRequest;
+import com.ims.grpcdemo.LoginUserResponse;
+import com.ims.grpcdemo.UsersServiceGrpc;
+
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -271,36 +278,31 @@ public class UserController {
   }
 
   
-  // @GetMapping("users/gprc/{id}")
-  // @Tag(name = "Users", description = "User operations")
-  // @Operation(summary = "Get extra info from grpc", description = "Get the extra information for the user from grpc.")
-  // @ApiResponses({
-  //     @ApiResponse(responseCode = "200", content = {
-  //         @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
-  //     @ApiResponse(responseCode = "404", content = {
-  //         @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
-  // })
-  // public ResponseEntity<?> getExtraInformation(
-  //     @Parameter(description = "User id for extra information", required = true) @PathVariable Long id) {
-  //   try {
-  //     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8080)
-  //         .usePlaintext()
-  //         .build();
+  @GetMapping("users/grpc/{id}")
+  @Tag(name = "Users", description = "User operations")
+  @Operation(summary = "Get extra info from grpc", description = "Get the extra information for the user from grpc.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  })
+  public ResponseEntity<?> getExtraInformation(
+      @Parameter(description = "User id for extra information", required = true) @PathVariable Long id) {
+    try {
+      ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8181)
+          .usePlaintext()
+          .build();
 
-  //     UsersService.UsersServiceBlockingStub stub = UsersService.newBlockingStub(channel);
-  //     LoginUser request = CurrencyRequest.newBuilder().setId(id).build();
-  //     CurrencyResponse response = stub.findOne(request);
+      UsersServiceGrpc.UsersServiceBlockingStub stub = UsersServiceGrpc.newBlockingStub(channel);
+      LoginUserRequest request = LoginUserRequest.newBuilder().build();
+      LoginUserResponse response = stub.loginUser(request);
 
-  //     Currency currency = new Currency();
-  //     currency.setId(response.getCurrency().getId());
-  //     currency.setName(response.getCurrency().getName());
-  //     currency.setShortName(response.getCurrency().getShortName());
-
-  //     return new CustomResponse("currency", currency).getResponse();
-  //   } catch (Exception e) {
-  //     return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
-  //   }
-  // }
+      return new CustomResponse("found", response.getSuccess()).getResponse();
+    } catch (Exception e) {
+      return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
+    }
+  }
 
 
   @PutMapping("/users/{id}")
