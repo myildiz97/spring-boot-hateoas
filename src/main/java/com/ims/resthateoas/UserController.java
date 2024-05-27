@@ -3,6 +3,7 @@ package com.ims.resthateoas;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 
@@ -268,6 +269,39 @@ public class UserController {
       return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
+
+  
+  // @GetMapping("users/gprc/{id}")
+  // @Tag(name = "Users", description = "User operations")
+  // @Operation(summary = "Get extra info from grpc", description = "Get the extra information for the user from grpc.")
+  // @ApiResponses({
+  //     @ApiResponse(responseCode = "200", content = {
+  //         @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)) }),
+  //     @ApiResponse(responseCode = "404", content = {
+  //         @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  // })
+  // public ResponseEntity<?> getExtraInformation(
+  //     @Parameter(description = "User id for extra information", required = true) @PathVariable Long id) {
+  //   try {
+  //     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8080)
+  //         .usePlaintext()
+  //         .build();
+
+  //     UsersService.UsersServiceBlockingStub stub = UsersService.newBlockingStub(channel);
+  //     LoginUser request = CurrencyRequest.newBuilder().setId(id).build();
+  //     CurrencyResponse response = stub.findOne(request);
+
+  //     Currency currency = new Currency();
+  //     currency.setId(response.getCurrency().getId());
+  //     currency.setName(response.getCurrency().getName());
+  //     currency.setShortName(response.getCurrency().getShortName());
+
+  //     return new CustomResponse("currency", currency).getResponse();
+  //   } catch (Exception e) {
+  //     return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
+  //   }
+  // }
+
 
   @PutMapping("/users/{id}")
   @Tag(name = "Users", description = "User operations")
