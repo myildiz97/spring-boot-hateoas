@@ -3,7 +3,6 @@ package com.ims.resthateoas;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ims.grpcdemo.CapabilityOfUserRequest;
 import com.ims.grpcdemo.CapabilityOfUserRequest;
 import com.ims.grpcdemo.CapabilityOfUserResponse;
 import com.ims.grpcdemo.Role;
@@ -146,7 +144,8 @@ public class UserController {
       Link logoutLink = linkTo(methodOn(UserController.class).userLogout(existingUser.getId())).withRel("logout");
       message.put("logout", logoutLink.getHref());
 
-      Link capabilitiesLink = linkTo(methodOn(UserController.class).getUserCapabilities(existingUser.getRole())).withRel("capabilities");
+      Link capabilitiesLink = linkTo(methodOn(UserController.class).getUserCapabilities(existingUser.getRole()))
+          .withRel("capabilities");
       message.put("capabilities", capabilitiesLink.getHref());
 
       userRepository.login(username, password);
@@ -282,8 +281,16 @@ public class UserController {
       return new CustomResponse(e.getMessage(), HttpStatus.NOT_FOUND).getResponse();
     }
   }
-  
+
   @GetMapping("users/grpc/capability/{role}")
+  @Tag(name = "Users", description = "User operations")
+  @Operation(summary = "Get user capabilities", description = "Get user capabilities by role")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) }),
+      @ApiResponse(responseCode = "404", content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = HashMap.class)) })
+  })
   public ResponseEntity<?> getUserCapabilities(@PathVariable UserRoles role) {
     try {
       ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 8181)

@@ -27,7 +27,6 @@ public class UserRepository {
     customer.setPassword("mehmet123");
     customer.setPhone("0553 130 95 98");
     customer.setUsername("mehmetyildiz");
-    customer.setLoggedIn(true);
 
     users.put(customer.getId(), customer);
 
